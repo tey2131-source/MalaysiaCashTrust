@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Malaysia Cash Trust — Research Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --trimble-blue: #0063a3;
+            --trimble-blue-dark: #003054;
+            --trimble-blue-mid: #004f83;
+            --trimble-blue-light: #368fc7;
+            --trimble-yellow: #fbad26;
+            --green-ok: #349C44;
+            --red-risk: #DA212C;
+            --amber: #BF8F00;
+        }
+        body { font-family: 'Open Sans', sans-serif; background: #fff; color: #252a2e; overflow: hidden; margin: 0; padding: 0; user-select: none; }
+
+        #portrait-warning { display: none; }
+        @media screen and (orientation: portrait) {
+            #main { display: none !important; }
+            #portrait-warning { display: flex; flex-direction: column; justify-content: center; align-items: center; position: fixed; inset: 0; background: var(--trimble-blue-dark); color: white; z-index: 9999; text-align: center; padding: 2rem; }
+        }
+
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; opacity: 0; transition: opacity 0.4s ease; box-sizing: border-box; background: #fff; padding-bottom: 4rem; overflow-y: auto; overflow-x: hidden; }
+        .slide.active { display: block; opacity: 1; z-index: 10; }
+
+        .nav-zone { position: absolute; top: 0; height: calc(100% - 3.5rem); z-index: 20; cursor: pointer; touch-action: none; }
+
+        @keyframes fadeRight { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes zoomFade { from { opacity: 0; transform: scale(0.95) translateY(16px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes growRight { from { width: 0; opacity: 0; } to { opacity: 1; } }
+
+        .slide.active .animate-title { animation: fadeRight 0.7s cubic-bezier(0.2,0.8,0.2,1) forwards; }
+        .reveal-step { opacity: 0; visibility: hidden; }
+        .reveal-step.revealed { visibility: visible; }
+        .slide.active .reveal-step.revealed.animate-fade-up { animation: zoomFade 0.7s cubic-bezier(0.2,0.8,0.2,1) forwards; }
+        .slide.active .animate-fade-up-immediate { animation: zoomFade 0.7s cubic-bezier(0.2,0.8,0.2,1) forwards; }
+        .slide.active .reveal-step.revealed .grow-right { animation: growRight 1.1s cubic-bezier(0.2,0.8,0.2,1) forwards; transform-origin: left; }
+        .slide.active .grow-right-immediate { animation: growRight 1.1s cubic-bezier(0.2,0.8,0.2,1) forwards; transform-origin: left; }
+
+        .step-badge { background: var(--trimble-blue); color: white; font-weight: 700; padding: 0.2rem 0.65rem; border-radius: 4px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; display: inline-block; }
+
+        .kpi-card { background: white; border-radius: 0.2rem; padding: 1.25rem 1.5rem; box-shadow: 0 2px 6px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; display: flex; flex-direction: column; }
+
+        .tag-green  { background: #eef8f0; color: #349C44; }
+        .tag-red    { background: #fdecea; color: #DA212C; }
+        .tag-blue   { background: #e8f1f9; color: #0063a3; }
+        .tag-amber  { background: #fff7e0; color: #BF8F00; }
+        .tag-grey   { background: #f1f5f9; color: #464b52; }
+
+        .risk-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid #f1f5f9; }
+        .risk-icon { width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.85rem; }
+
+        .chain-box { border-radius: 0.25rem; padding: 1rem 1.25rem; text-align: center; line-height: 1.7; font-size: 0.8rem; }
+
+        table.compare { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+        table.compare th { background: var(--trimble-blue-dark); color: white; padding: 0.5rem 0.65rem; text-align: left; font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        table.compare td { padding: 0.45rem 0.65rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; line-height: 1.4; }
+        table.compare tr:nth-child(even) td { background: #f8fafc; }
+        table.compare td:first-child { font-weight: 700; color: #003054; background: #eef3fa !important; }
+
+        .note-box { display: flex; border-radius: 0.25rem; overflow: hidden; border: 1px solid #e2e8f0; }
+        .note-label { padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: center; min-width: 5rem; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; text-align: center; }
+        .note-body { padding: 0.75rem 1rem; font-size: 0.8rem; line-height: 1.5; font-style: italic; }
+
+        .bar-row { display: flex; align-items: center; margin-bottom: 0.6rem; }
+        .bar-label { width: 38%; text-align: right; padding-right: 0.75rem; font-size: 0.72rem; font-weight: 700; color: #464b52; text-transform: uppercase; letter-spacing: 0.03em; flex-shrink: 0; }
+        .bar-track { flex: 1; display: flex; align-items: center; }
+        .bar-fill { height: 1.4rem; border-radius: 2px; }
+        .bar-val { margin-left: 0.5rem; font-weight: 800; font-size: 0.85rem; color: #252a2e; }
+
+        .slide-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem; }
+    </style>
+</head>
+<body class="antialiased">
+
+<div id="portrait-warning">
+    <svg class="w-16 h-16 mb-4 animate-pulse" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 10.5h16M4 10.5a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2v-6a2 2 0 00-2-2M4 10.5v-4a2 2 0 012-2h12a2 2 0 012 2v4"/></svg>
+    <h2 class="text-2xl font-extrabold mb-3">Please Rotate Your Device</h2>
+    <p class="text-gray-300 text-base">This report deck is optimised for landscape viewing.</p>
+</div>
+
+<main id="main" class="relative w-screen h-screen">
+
+    <canvas id="drawing-canvas" class="absolute top-0 left-0 w-full h-full pointer-events-none" style="z-index:25;"></canvas>
+    <div id="nav-zone-left"  class="nav-zone left-0 w-[10%]"></div>
+    <div id="nav-zone-right" class="nav-zone right-0 w-[90%]"></div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SLIDE 0 — TITLE
+    ════════════════════════════════════════════════════════════════ -->
+    <section class="slide active" id="slide-0">
+        <div class="absolute inset-0 bg-black z-0">
+            <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=2070&auto=format&fit=crop"
+                 alt="Finance background" class="w-full h-full object-cover opacity-40">
+            <div class="absolute inset-0 bg-gradient-to-r from-[#003054] via-[#003054]/90 to-[#0063a3]/60"></div>
+        </div>
+        <div class="relative z-10 flex h-full w-full">
+            <div class="w-full h-full p-8 md:p-16 lg:p-24 flex flex-col justify-center">
+                <div class="absolute top-6 left-6 md:top-10 md:left-14 lg:left-20">
+                    <div class="bg-white px-3 py-1.5 flex items-center gap-2">
+                        <div class="w-3 h-3 bg-[#0063a3] rounded-sm"></div>
+                        <span class="font-extrabold text-[#003054] text-sm tracking-wider uppercase">Research Report</span>
+                    </div>
+                </div>
+
+                <div class="animate-title mt-12 md:mt-16 max-w-4xl">
+                    <p class="text-[var(--trimble-yellow)] font-bold text-sm md:text-base uppercase tracking-widest mb-3">Malaysia Cash Trust Market — Deep Dive</p>
+                    <h1 class="text-3xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4 leading-tight">Investment Analysis<br>&amp; Regulatory<br>Landscape</h1>
+                    <p class="text-gray-300 text-base md:text-xl font-light mb-8 max-w-2xl">Comparing Short-Term Lending Trusts vs. Capital Market Investment Trusts — with analysis of the Custodian gap and Act 209 Section 12</p>
+
+                    <div class="flex flex-wrap gap-3 mt-6">
+                        <span class="px-3 py-1.5 rounded text-xs font-bold bg-white/10 text-white border border-white/20">ZICO IPT 3</span>
+                        <span class="px-3 py-1.5 rounded text-xs font-bold bg-white/10 text-white border border-white/20">UBB OT 2</span>
+                        <span class="px-3 py-1.5 rounded text-xs font-bold bg-white/10 text-white border border-white/20">SC Practice Note May 2026</span>
+                        <span class="px-3 py-1.5 rounded text-xs font-bold bg-white/10 text-white border border-white/20">Trustee Act 1949 (Act 209)</span>
+                    </div>
+                </div>
+
+                <div class="absolute bottom-20 md:bottom-14 left-8 md:left-16 lg:left-24 text-[10px] text-gray-400 font-semibold uppercase tracking-widest">
+                    © June 2026 — For informational purposes only. Not financial or legal advice.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SLIDE 1 — EXECUTIVE SUMMARY
+    ════════════════════════════════════════════════════════════════ -->
+    <section class="slide px-6 md:px-12 lg:px-20 pt-6 md:pt-8 flex flex-col pb-20" id="slide-1">
+        <div class="slide-header animate-title">
+            <div>
+                <div class="step-badge">Overview</div>
+                <h2 class="text-xl md:text-2xl lg:text-3xl font-extrabold text-[#252a2e]">Executive Summary</h2>
+            </div>
+            <div class="text-right hidden sm:block">
+                <p class="text-lg font-bold text-[#0063a3]">June 2026</p>
+                <p class="text-xs text-[#464b52] font-semibold uppercase tracking-wider">Research Report</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 reveal-step animate-fade-up">
+            <div class="kpi-card border-l-4 border-[#0063a3] lg:col-span-1">
+                <p class="text-[10px] font-bold text-[#464b52] uppercase tracking-wider mb-1">Products Analysed</p>
+                <p class="text-2xl font-black text-[#0063a3] mb-1">2 Trusts</p>
+                <p class="text-xs text-gray-500">ZICO IPT 3 &amp; UBB OT 2</p>
+                <div class="mt-3 flex gap-2 flex-wrap">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold tag-blue">8–10% p.a.</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold tag-grey">3-Year Tenure</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold tag-grey">RM 20k min</span>
+                </div>
+            </div>
+            <div class="kpi-card border-l-4 border-[#DA212C] lg:col-span-1">
+                <p class="text-[10px] font-bold text-[#464b52] uppercase tracking-wider mb-1">Trust Type Identified</p>
+                <p class="text-2xl font-black text-[#DA212C] mb-1">Lending-Based</p>
+                <p class="text-xs text-gray-500">NOT capital market investment trusts</p>
+                <div class="mt-3 flex gap-2 flex-wrap">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold tag-red">No SC Licence</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold tag-red">No Custodian</span>
+                </div>
+            </div>
+            <div class="kpi-card border-l-4 border-[#fbad26] lg:col-span-1">
+                <p class="text-[10px] font-bold text-[#464b52] uppercase tracking-wider mb-1">Key Legal Safeguard Found</p>
+                <p class="text-2xl font-black text-[#BF8F00] mb-1">Act 209 S.12</p>
+                <p class="text-xs text-gray-500">Trustee Act 1949 — 2/3 LTV lending cap</p>
+                <div class="mt-3 flex gap-2 flex-wrap">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold tag-amber">Good in Principle</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold tag-red">Unverifiable</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 reveal-step animate-fade-up flex-grow">
+            <div class="p-4 bg-[#fdf2f2] border-l-4 border-[#DA212C] rounded-r-sm">
+                <p class="text-xs font-bold text-[#DA212C] uppercase tracking-wider mb-2">⚠ Key Concerns</p>
+                <ul class="space-y-1.5">
+                    <li class="flex items-start gap-2 text-xs text-[#252a2e]"><span class="text-red-500 mt-0.5 flex-shrink-0">●</span>Returns come from loan interest, not regulated capital markets</li>
+                    <li class="flex items-start gap-2 text-xs text-[#252a2e]"><span class="text-red-500 mt-0.5 flex-shrink-0">●</span>No independent custodian — trust company controls funds AND self-reports performance</li>
+                    <li class="flex items-start gap-2 text-xs text-[#252a2e]"><span class="text-red-500 mt-0.5 flex-shrink-0">●</span>20% early withdrawal penalty on full capital — locked in even if warning signs emerge</li>
+                    <li class="flex items-start gap-2 text-xs text-[#252a2e]"><span class="text-red-500 mt-0.5 flex-shrink-0">●</span>No PIDM deposit insurance coverage</li>
+                    <li class="flex items-start gap-2 text-xs text-[#252a2e]"><span class="text-red-500 mt-0.5 flex-shrink-0">●</span>Zero obligation to disclose loan book composition to donors</li>
+                </ul>
+            </div>
+            <div class="p-4 bg-[#eef8f0] border-l-4 border-[#349C44] rounded-r-sm">
+                <p class="text-xs font-bold text-[#349C44] uppercase tracking-wider mb-2">✓ Mitigating Factors</p>
+                <ul class="space-y-1.5">
+                    <li class="flex items-start gap-2 text-xs text-[#252a2e]"><span class="text-green-600 mt-0.5 flex-shrink-0">●</span>Act 209 Section 12 requires property-secured loans with independent valuation</li>
+                    <li class="flex items-start gap-2 text-xs text-[#252a2e]"><span class="text-green-600 mt-0.5 flex-shrink-0">●</span>2/3 LTV cap provides 33% equity buffer before donor capital is at risk</li>
+                    <li class="flex items-start gap-2 text-xs text-[#252a2e]"><span class="text-green-600 mt-0.5 flex-shrink-0">●</span>SSM-registered trust companies governed by Trustee Act 1949</li>
+                    <li class="flex items-start gap-2 text-xs text-[#252a2e]"><span class="text-green-600 mt-0.5 flex-shrink-0">●</span>ZICO IPT 3: beneficiary payout within 14 working days of death — estate liquidity advantage</li>
+                    <li class="flex items-start gap-2 text-xs text-[#252a2e]"><span class="text-green-600 mt-0.5 flex-shrink-0">●</span>SC Practice Note (May 2026) legitimises lending-based trusts outside capital market rules</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SLIDE 2 — PRODUCT COMPARISON
+    ════════════════════════════════════════════════════════════════ -->
+    <section class="slide px-6 md:px-12 lg:px-20 pt-6 md:pt-8 flex flex-col pb-20" id="slide-2">
+        <div class="slide-header animate-title">
+            <div>
+                <div class="step-badge">1. Products</div>
+                <h2 class="text-xl md:text-2xl lg:text-3xl font-extrabold text-[#252a2e]">ZICO IPT 3 vs UBB OT 2</h2>
+            </div>
+            <div class="hidden sm:flex gap-3">
+                <div class="px-4 py-2 border border-[#e2e8f0] rounded-sm text-center bg-white shadow-sm">
+                    <p class="text-[10px] font-bold text-[#464b52] uppercase tracking-wider">Min Entry</p>
+                    <p class="text-xl font-black text-[#0063a3]">RM 20k</p>
+                </div>
+                <div class="px-4 py-2 border border-[#e2e8f0] rounded-sm text-center bg-white shadow-sm">
+                    <p class="text-[10px] font-bold text-[#464b52] uppercase tracking-wider">Return Range</p>
+                    <p class="text-xl font-black text-[#0063a3]">8–10%</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-grow reveal-step animate-fade-up">
+            <!-- ZICO -->
+            <div class="kpi-card border-t-4 border-[#0063a3]">
+                <div class="flex justify-between items-center mb-3 pb-2 border-b">
+                    <h3 class="font-extrabold text-[#003054] text-base md:text-lg">ZICO Inter-Vivos Prime Trust 3</h3>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold tag-blue">IPT 3</span>
+                </div>
+                <div class="space-y-2 flex-grow">
+                    <div class="flex justify-between items-center py-1 border-b border-gray-50"><span class="text-xs text-[#464b52] font-semibold">Offer Period</span><span class="text-xs font-bold text-[#252a2e]">18 Nov 2025 – 12 Feb 2026</span></div>
+                    <div class="flex justify-between items-center py-1 border-b border-gray-50"><span class="text-xs text-[#464b52] font-semibold">Profit Share (net)</span><span class="text-xs font-black text-[#0063a3]">8 – 9% p.a.</span></div>
+                    <div class="flex justify-between items-center py-1 border-b border-gray-50"><span class="text-xs text-[#464b52] font-semibold">Distribution</span><span class="px-2 py-0.5 rounded text-[10px] font-bold tag-green">Quarterly ✓</span></div>
+                    <div class="flex justify-between items-center py-1 border-b border-gray-50"><span class="text-xs text-[#464b52] font-semibold">Trust Period</span><span class="text-xs font-bold">3 years</span></div>
+                    <div class="flex justify-between items-center py-1 border-b border-gray-50"><span class="text-xs text-[#464b52] font-semibold">Beneficiaries</span><span class="text-xs font-bold">Up to 3 main</span></div>
+                    <div class="flex justify-between items-center py-1 border-b border-gray-50"><span class="text-xs text-[#464b52] font-semibold">Early Withdrawal Penalty</span><span class="px-2 py-0.5 rounded text-[10px] font-bold tag-red">20% of capital</span></div>
+                    <div class="flex justify-between items-center py-1 border-b border-gray-50"><span class="text-xs text-[#464b52] font-semibold">Commencement Date</span><span class="text-xs font-bold">15th or 28th of month</span></div>
+                    <div class="flex justify-between items-start py-1"><span class="text-xs text-[#464b52] font-semibold">On Donor Death</span><span class="text-xs font-bold text-[#349C44] text-right max-w-[55%]">Capital to beneficiary within <strong>14 working days</strong> ✓</span></div>
+                </div>
+                <div class="mt-3 pt-2 border-t note-box">
+                    <div class="note-label bg-[#0063a3] text-white text-[9px]">EDGE</div>
+                    <div class="note-body text-[11px] text-[#252a2e]">Best for estate liquidity — 14-day payout on death is a meaningful advantage for beneficiaries.</div>
+                </div>
+            </div>
+
+            <!-- UBB -->
+            <div class="kpi-card border-t-4 border-[#368fc7]">
+                <div class="flex justify-between items-center mb-3 pb-2 border-b">
+                    <h3 class="font-extrabold text-[#003054] text-base md:text-lg">UBB Opportunity Trust 2</h3>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold tag-blue">OT 2</span>
+                </div>
+                <div class="space-y-2 flex-grow">
+                    <div class="flex justify-between items-center py-1 border-b border-gray-50"><span class="text-xs text-[#464b52] font-semibold">Offer Period</span><span class="text-xs font-bold text-[#252a2e]">20 Apr 2026 – 20 Sep 2026</span></div>
+                    <div class="flex justify-between items-center py-1 border-b border-gray-50"><span class="text-xs text-[#464b52] font-semibold">Profit Share (net)</span><span class="text-xs font-black text-[#0063a3]">8 – 10% p.a.</span></div>
+                    <div class="flex justify-between items-center py-1 border-b border-gray-50"><span class="text-xs text-[#464b52] font-semibold">Distribution</span><span class="px-2 py-0.5 rounded text-[10px] font-bold tag-amber">Yearly ⚠</span></div>
+                    <div class="flex justify-between items-center py-1 border-b border-gray-50"><span class="text-xs text-[#464b52] font-semibold">Trust Period</span><span class="text-xs font-bold">3 years</span></div>
+                    <div class="flex justify-between items-center py-1 border-b border-gray-50"><span class="text-xs text-[#464b52] font-semibold">Beneficiaries</span><span class="text-xs font-bold">Up to 2 main</span></div>
+                    <div class="flex justify-between items-center py-1 border-b border-gray-50"><span class="text-xs text-[#464b52] font-semibold">Early Withdrawal Penalty</span><span class="px-2 py-0.5 rounded text-[10px] font-bold tag-red">20% of capital</span></div>
+                    <div class="flex justify-between items-center py-1 border-b border-gray-50"><span class="text-xs text-[#464b52] font-semibold">Commencement Date</span><span class="text-xs font-bold">15th or 30th of month</span></div>
+                    <div class="flex justify-between items-start py-1"><span class="text-xs text-[#464b52] font-semibold">On Donor Death</span><span class="text-xs font-bold text-[#DA212C] text-right max-w-[55%]">Capital paid at <strong>end of trust term</strong> only ✗</span></div>
+                </div>
+                <div class="mt-3 pt-2 border-t note-box">
+                    <div class="note-label bg-[#BF8F00] text-white text-[9px]">NOTE</div>
+                    <div class="note-body text-[11px] text-[#252a2e]">Higher return ceiling (10%) and longer offer period, but yearly payout makes early loan-book problems harder to detect.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SLIDE 3 — LENDING vs CAPITAL MARKET
+    ════════════════════════════════════════════════════════════════ -->
+    <section class="slide px-6 md:px-12 lg:px-20 pt-6 md:pt-8 flex flex-col pb-20" id="slide-3">
+        <div class="slide-header animate-title">
+            <div>
+                <div class="step-badge">2. Core Finding</div>
+                <h2 class="text-xl md:text-2xl lg:text-3xl font-extrabold text-[#252a2e]">Lending Trust vs Capital Market Trust</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4 reveal-step animate-fade-up">
+            <div class="kpi-card border-t-4 border-[#DA212C]">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-full bg-[#fdecea] flex items-center justify-center text-[#DA212C] text-sm font-black">$</div>
+                    <p class="font-extrabold text-[#003054]">Short-Term Lending Model</p>
+                </div>
+                <p class="text-xs text-gray-500 mb-3 italic">How ZICO IPT 3 &amp; UBB OT 2 operate</p>
+                <ul class="space-y-2">
+                    <li class="text-xs flex items-start gap-2"><span class="text-[#DA212C] font-black mt-0.5">→</span>Trust capital deployed as loans to borrowers</li>
+                    <li class="text-xs flex items-start gap-2"><span class="text-[#DA212C] font-black mt-0.5">→</span>Profits = interest earned on loans</li>
+                    <li class="text-xs flex items-start gap-2"><span class="text-[#DA212C] font-black mt-0.5">→</span>Fixed return range (e.g. 8–9%) — not market-variable</li>
+                    <li class="text-xs flex items-start gap-2"><span class="text-[#DA212C] font-black mt-0.5">→</span>Trust charges borrowers ~12–15%, pays donors 8–10%</li>
+                    <li class="text-xs flex items-start gap-2"><span class="text-[#DA212C] font-black mt-0.5">→</span>2–5% spread = trust company's fees &amp; margin</li>
+                    <li class="text-xs flex items-start gap-2"><span class="text-[#DA212C] font-black mt-0.5">→</span>Governed by SSM / Trustee Act 1949 only</li>
+                    <li class="text-xs flex items-start gap-2"><span class="text-[#DA212C] font-black mt-0.5">→</span><strong>No SC licence required</strong> (if lending only)</li>
+                </ul>
+            </div>
+            <div class="kpi-card border-t-4 border-[#349C44]">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-full bg-[#eef8f0] flex items-center justify-center text-[#349C44] text-sm font-black">↗</div>
+                    <p class="font-extrabold text-[#003054]">Capital Market Investment Model</p>
+                </div>
+                <p class="text-xs text-gray-500 mb-3 italic">SC-regulated unit trusts &amp; fund management</p>
+                <ul class="space-y-2">
+                    <li class="text-xs flex items-start gap-2"><span class="text-[#349C44] font-black mt-0.5">→</span>Trustee invests in securities, bonds, equities</li>
+                    <li class="text-xs flex items-start gap-2"><span class="text-[#349C44] font-black mt-0.5">→</span>Returns = market-driven, variable, disclosed daily via NAV</li>
+                    <li class="text-xs flex items-start gap-2"><span class="text-[#349C44] font-black mt-0.5">→</span>Capital Markets Services Licence (CMSL) mandatory</li>
+                    <li class="text-xs flex items-start gap-2"><span class="text-[#349C44] font-black mt-0.5">→</span>Full prospectus, fund fact sheet published</li>
+                    <li class="text-xs flex items-start gap-2"><span class="text-[#349C44] font-black mt-0.5">→</span>SC can investigate, freeze assets, enforce</li>
+                    <li class="text-xs flex items-start gap-2"><span class="text-[#349C44] font-black mt-0.5">→</span>Independent custodian holds assets separately</li>
+                    <li class="text-xs flex items-start gap-2"><span class="text-[#349C44] font-black mt-0.5">→</span><strong>No guaranteed fixed return</strong> — honest risk disclosure</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="reveal-step animate-fade-up">
+            <div class="note-box">
+                <div class="note-label bg-[#0063a3] text-white">KEY<br>FINDING</div>
+                <div class="note-body text-[#252a2e]">ZICO IPT 3 and UBB OT 2 are <strong>money-lending trusts</strong>. The fixed profit ranges, absence of NAV disclosure, no fund manager, and no prospectus are all hallmarks of lending — not capital market investment. Under the SC Practice Note issued May 22, 2026, lending trusts fall <strong>outside</strong> SC jurisdiction (exempt from CMSL) — which means lower investor protection but current regulatory legitimacy.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SLIDE 4 — REGULATORY TIMELINE
+    ════════════════════════════════════════════════════════════════ -->
+    <section class="slide px-6 md:px-12 lg:px-20 pt-6 md:pt-8 flex flex-col pb-20" id="slide-4">
+        <div class="slide-header animate-title">
+            <div>
+                <div class="step-badge">3. Regulation</div>
+                <h2 class="text-xl md:text-2xl lg:text-3xl font-extrabold text-[#252a2e]">Regulatory Timeline 2023–2026</h2>
+            </div>
+            <div class="hidden sm:block text-right">
+                <p class="text-xs text-[#464b52] font-bold uppercase tracking-wider">Fast-Moving Landscape</p>
+                <p class="text-xs text-[#DA212C] font-bold">SC tightening oversight</p>
+            </div>
+        </div>
+
+        <div class="flex-grow overflow-y-auto reveal-step animate-fade-up">
+            <div class="space-y-2">
+                <div class="flex gap-3 items-start">
+                    <div class="flex-shrink-0 w-24 text-right"><span class="text-xs font-black text-[#003054]">2023</span></div>
+                    <div class="flex-shrink-0 w-3 flex flex-col items-center"><div class="w-3 h-3 rounded-full bg-[#90939f] mt-0.5"></div><div class="w-0.5 bg-gray-200 flex-grow mt-1"></div></div>
+                    <div class="pb-3 flex-grow"><p class="text-xs font-bold text-[#252a2e]">SC Annual Report Flags Cash Trusts</p><p class="text-xs text-gray-500">Investigations begin into unlicensed capital market activities by trust companies.</p></div>
+                </div>
+                <div class="flex gap-3 items-start">
+                    <div class="flex-shrink-0 w-24 text-right"><span class="text-xs font-black text-[#003054]">Jan 1, 2026</span></div>
+                    <div class="flex-shrink-0 w-3 flex flex-col items-center"><div class="w-3 h-3 rounded-full bg-[#0063a3] mt-0.5"></div><div class="w-0.5 bg-gray-200 flex-grow mt-1"></div></div>
+                    <div class="pb-3 flex-grow"><p class="text-xs font-bold text-[#252a2e]">CM&amp;S (Amendment) Order 2025 Takes Effect</p><p class="text-xs text-gray-500">Expands SC's authority to determine which trust companies require licensing.</p></div>
+                </div>
+                <div class="flex gap-3 items-start">
+                    <div class="flex-shrink-0 w-24 text-right"><span class="text-xs font-black text-[#003054]">Feb 2026</span></div>
+                    <div class="flex-shrink-0 w-3 flex flex-col items-center"><div class="w-3 h-3 rounded-full bg-[#0063a3] mt-0.5"></div><div class="w-0.5 bg-gray-200 flex-grow mt-1"></div></div>
+                    <div class="pb-3 flex-grow"><p class="text-xs font-bold text-[#252a2e]">Ministry of Finance Confirms Licensing Framework</p><p class="text-xs text-gray-500">SC confirms it has already prosecuted one trust company for unlicensed capital market activities.</p></div>
+                </div>
+                <div class="flex gap-3 items-start">
+                    <div class="flex-shrink-0 w-24 text-right"><span class="text-xs font-black text-[#DA212C]">Mar–Apr 2026</span></div>
+                    <div class="flex-shrink-0 w-3 flex flex-col items-center"><div class="w-3 h-3 rounded-full bg-[#DA212C] mt-0.5"></div><div class="w-0.5 bg-gray-200 flex-grow mt-1"></div></div>
+                    <div class="pb-3 flex-grow"><p class="text-xs font-bold text-[#252a2e]">Major Insurers Ban Agents from Promoting Cash Trusts</p><p class="text-xs text-gray-500">Prudential, Great Eastern, Hong Leong Assurance, Tokio Marine all issue internal prohibitions.</p></div>
+                </div>
+                <div class="flex gap-3 items-start">
+                    <div class="flex-shrink-0 w-24 text-right"><span class="text-xs font-black text-[#fbad26]">May 22, 2026</span></div>
+                    <div class="flex-shrink-0 w-3 flex flex-col items-center"><div class="w-3 h-3 rounded-full bg-[#fbad26] mt-0.5"></div><div class="w-0.5 bg-gray-200 flex-grow mt-1"></div></div>
+                    <div class="pb-3 flex-grow"><p class="text-xs font-bold text-[#252a2e]">⭐ SC Practice Note — Landmark Ruling</p><p class="text-xs text-gray-500">Draws clean line: conventional/lending trusts exempt; capital-market-investing trusts need CMSL. Lending-based products like ZICO &amp; UBB currently fall in the exempt category.</p></div>
+                </div>
+                <div class="flex gap-3 items-start">
+                    <div class="flex-shrink-0 w-24 text-right"><span class="text-xs font-black text-[#003054]">2026 (TBC)</span></div>
+                    <div class="flex-shrink-0 w-3 flex flex-col items-center"><div class="w-3 h-3 rounded-full border-2 border-[#003054] bg-white mt-0.5"></div></div>
+                    <div class="pb-3 flex-grow"><p class="text-xs font-bold text-[#252a2e]">New Trust Companies Bill (Pending)</p><p class="text-xs text-gray-500">Will replace Trust Companies Act 1949. Mandatory registration, beneficial ownership disclosure, and governance standards. Significant tightening ahead.</p></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3 reveal-step animate-fade-up">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="p-2 bg-[#eef8f0] rounded text-center border border-[#c3e6cb]"><p class="text-[10px] font-bold text-[#349C44] uppercase">Lending Trusts</p><p class="text-xs font-black text-[#349C44]">Currently Exempt</p></div>
+                <div class="p-2 bg-[#fdecea] rounded text-center border border-[#f5c6cb]"><p class="text-[10px] font-bold text-[#DA212C] uppercase">Capital Mkt Trusts</p><p class="text-xs font-black text-[#DA212C]">CMSL Required</p></div>
+                <div class="p-2 bg-[#fff7e0] rounded text-center border border-[#ffeaa0]"><p class="text-[10px] font-bold text-[#BF8F00] uppercase">New Bill</p><p class="text-xs font-black text-[#BF8F00]">Tightening Soon</p></div>
+                <div class="p-2 bg-[#e8f1f9] rounded text-center border border-[#bee3f8]"><p class="text-[10px] font-bold text-[#0063a3] uppercase">No PIDM</p><p class="text-xs font-black text-[#0063a3]">Either Product</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SLIDE 5 — CUSTODIAN
+    ════════════════════════════════════════════════════════════════ -->
+    <section class="slide px-6 md:px-12 lg:px-20 pt-6 md:pt-8 flex flex-col pb-20" id="slide-5">
+        <div class="slide-header animate-title">
+            <div>
+                <div class="step-badge">4. Custodian</div>
+                <h2 class="text-xl md:text-2xl lg:text-3xl font-extrabold text-[#252a2e]">The Custodian Gap</h2>
+            </div>
+            <div class="hidden sm:block text-right">
+                <p class="text-xs font-bold text-[#DA212C] uppercase tracking-wider">Critical Missing Layer</p>
+                <p class="text-xs text-gray-500">Not present in either product</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 animate-fade-up-immediate">
+            <div class="kpi-card text-center">
+                <div class="w-10 h-10 rounded-full bg-[#e8f1f9] flex items-center justify-center mx-auto mb-2 text-[#0063a3] font-black text-sm">FM</div>
+                <p class="font-bold text-[#003054] text-sm">Fund Manager</p>
+                <p class="text-xs text-gray-500 mt-1">Makes investment decisions — what to buy &amp; sell</p>
+                <p class="text-[10px] font-bold text-[#464b52] mt-2 uppercase">Protects: Themselves (earns fees)</p>
+            </div>
+            <div class="kpi-card text-center border-2 border-[#0063a3]">
+                <div class="w-10 h-10 rounded-full bg-[#0063a3] flex items-center justify-center mx-auto mb-2 text-white font-black text-sm">T</div>
+                <p class="font-bold text-[#003054] text-sm">Trustee</p>
+                <p class="text-xs text-gray-500 mt-1">Supervises fund manager; enforces deed; holds legal title to assets</p>
+                <p class="text-[10px] font-bold text-[#0063a3] mt-2 uppercase">Protects: Unit holders (legally)</p>
+            </div>
+            <div class="kpi-card text-center border-2 border-dashed border-[#DA212C]">
+                <div class="w-10 h-10 rounded-full bg-[#fdecea] flex items-center justify-center mx-auto mb-2 text-[#DA212C] font-black text-sm">C</div>
+                <p class="font-bold text-[#DA212C] text-sm">Custodian ← MISSING</p>
+                <p class="text-xs text-gray-500 mt-1">Physically holds &amp; safeguards assets; settles trades; independent records</p>
+                <p class="text-[10px] font-bold text-[#DA212C] mt-2 uppercase">Protects: Unit holders (operationally)</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow reveal-step animate-fade-up">
+            <div>
+                <p class="text-xs font-bold text-[#464b52] uppercase tracking-wider mb-2">Protection Chain Comparison</p>
+                <div class="chain-box bg-[#eef8f0] border border-[#c3e6cb] mb-3 text-left">
+                    <p class="text-[10px] font-black text-[#349C44] uppercase mb-1">✓ SC-Regulated Unit Trust</p>
+                    <p class="text-xs text-[#252a2e] leading-6">Donor → Fund Manager → Trustee → <strong>Custodian (independent)</strong> → SC Oversight</p>
+                </div>
+                <div class="chain-box bg-[#fdecea] border border-[#f5c6cb] text-left">
+                    <p class="text-[10px] font-black text-[#DA212C] uppercase mb-1">⚠ Lending Cash Trust (ZICO / UBB)</p>
+                    <p class="text-xs text-[#252a2e] leading-6">Donor → <strong>Trust Company</strong><br>(controls funds + runs lending + self-reports)<br>→ SSM (minimal oversight)</p>
+                    <p class="text-[10px] text-[#DA212C] font-bold mt-1">No independent custodian. No SC supervision.</p>
+                </div>
+            </div>
+            <div>
+                <p class="text-xs font-bold text-[#464b52] uppercase tracking-wider mb-2">The Madoff Parallel</p>
+                <div class="kpi-card h-auto">
+                    <p class="text-xs leading-5 text-[#252a2e] mb-3">Bernie Madoff's <strong>USD 65 billion fraud ran for 30+ years</strong> precisely because he was <strong>his own custodian</strong>. He produced fake statements and trade confirmations — and nobody independently verified the assets existed.</p>
+                    <p class="text-xs leading-5 text-[#252a2e] mb-3">With lending-based cash trusts in Malaysia today, the trust company self-reports loan performance with no mandatory external verification.</p>
+                    <div class="note-box">
+                        <div class="note-label bg-[#DA212C] text-white text-[9px]">RISK</div>
+                        <div class="note-body text-[11px]">The moment an independent custodian had been required of Madoff, the fraud would have collapsed immediately.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SLIDE 6 — SECTION 12 ACT 209
+    ════════════════════════════════════════════════════════════════ -->
+    <section class="slide px-6 md:px-12 lg:px-20 pt-6 md:pt-8 flex flex-col pb-20" id="slide-6">
+        <div class="slide-header animate-title">
+            <div>
+                <div class="step-badge">5. Legal Safeguard</div>
+                <h2 class="text-xl md:text-2xl lg:text-3xl font-extrabold text-[#252a2e]">Section 12, Trustee Act 1949 (Act 209)</h2>
+            </div>
+            <div class="hidden sm:block text-right">
+                <p class="text-xs font-bold text-[#349C44] uppercase tracking-wider">Built-In Lending Safeguard</p>
+                <p class="text-xs text-gray-500">2/3 LTV Rule — Loans on Property Security</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 animate-fade-up-immediate">
+            <div class="kpi-card border-t-4 border-[#0063a3]">
+                <div class="flex items-center gap-2 mb-2"><div class="w-7 h-7 rounded-full bg-[#0063a3] text-white font-black text-xs flex items-center justify-center">A</div><p class="font-bold text-[#003054] text-sm">Independent Valuation</p></div>
+                <p class="text-xs text-gray-600 leading-5">Loan must be made based on a report by a <strong>qualified surveyor or valuer instructed independently</strong> of any owner of the property.</p>
+                <p class="text-[10px] font-bold text-[#464b52] mt-2 pt-2 border-t">The valuer cannot have any connection to the borrower.</p>
+            </div>
+            <div class="kpi-card border-t-4 border-[#fbad26]">
+                <div class="flex items-center gap-2 mb-2"><div class="w-7 h-7 rounded-full bg-[#fbad26] text-white font-black text-xs flex items-center justify-center">B</div><p class="font-bold text-[#003054] text-sm">2/3 LTV Cap</p></div>
+                <p class="text-xs text-gray-600 leading-5">Loan amount <strong>must not exceed two-thirds (66.7%)</strong> of the property value stated in the report.</p>
+                <div class="mt-2 pt-2 border-t">
+                    <div class="bar-row" style="margin-bottom:0.25rem;">
+                        <div class="bar-label" style="width:40%;font-size:0.65rem;">Max Loan</div>
+                        <div class="bar-track"><div class="bar-fill bg-[#fbad26]" style="width:66.7%;"></div><span class="bar-val text-xs">66.7%</span></div>
+                    </div>
+                    <div class="bar-row">
+                        <div class="bar-label" style="width:40%;font-size:0.65rem;">Buffer</div>
+                        <div class="bar-track"><div class="bar-fill bg-[#eef8f0] border border-[#349C44]" style="width:33.3%;"></div><span class="bar-val text-xs text-[#349C44]">33.3%</span></div>
+                    </div>
+                    <p class="text-[9px] text-[#349C44] font-bold mt-1">33% equity cushion before capital is at risk</p>
+                </div>
+            </div>
+            <div class="kpi-card border-t-4 border-[#349C44]">
+                <div class="flex items-center gap-2 mb-2"><div class="w-7 h-7 rounded-full bg-[#349C44] text-white font-black text-xs flex items-center justify-center">C</div><p class="font-bold text-[#003054] text-sm">Valuer's Advice Followed</p></div>
+                <p class="text-xs text-gray-600 leading-5">The loan must be made <strong>under the advice of the same surveyor or valuer</strong> expressed in the report.</p>
+                <p class="text-[10px] font-bold text-[#464b52] mt-2 pt-2 border-t">Trustee cannot override the valuer's recommendation.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow reveal-step animate-fade-up">
+            <div>
+                <p class="text-xs font-bold text-[#464b52] uppercase tracking-wider mb-2">What This Reveals</p>
+                <div class="space-y-2">
+                    <div class="flex items-start gap-2 p-2 bg-[#eef8f0] rounded border-l-4 border-[#349C44]">
+                        <span class="text-[#349C44] font-black text-sm mt-0.5">✓</span>
+                        <p class="text-xs leading-5">Loans are almost certainly <strong>property-secured</strong> (bridging loans, property development, secured lending against land/buildings)</p>
+                    </div>
+                    <div class="flex items-start gap-2 p-2 bg-[#eef8f0] rounded border-l-4 border-[#349C44]">
+                        <span class="text-[#349C44] font-black text-sm mt-0.5">✓</span>
+                        <p class="text-xs leading-5">The <strong>33% equity buffer</strong> means property must fall more than a third in value before donor capital is at risk</p>
+                    </div>
+                    <div class="flex items-start gap-2 p-2 bg-[#eef8f0] rounded border-l-4 border-[#349C44]">
+                        <span class="text-[#349C44] font-black text-sm mt-0.5">✓</span>
+                        <p class="text-xs leading-5">More conservative than <strong>unsecured lending</strong> — a real asset backs each loan</p>
+                    </div>
+                    <div class="flex items-start gap-2 p-2 bg-[#fdecea] rounded border-l-4 border-[#DA212C]">
+                        <span class="text-[#DA212C] font-black text-sm mt-0.5">✗</span>
+                        <p class="text-xs leading-5">Donors have <strong>no mechanism to verify</strong> that S.12 conditions are actually being followed on every loan</p>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <p class="text-xs font-bold text-[#464b52] uppercase tracking-wider mb-2">S.12 vs Bank Regulation</p>
+                <table class="compare text-[10.5px]">
+                    <tr><th>Safeguard</th><th>Trust (Act 209)</th><th>Licensed Bank</th></tr>
+                    <tr><td>LTV Cap</td><td>66.7% — law</td><td>BNM guidelines + stress tests</td></tr>
+                    <tr><td>Ind. Valuation</td><td>Required — self-enforced</td><td>Audited by BNM examiners</td></tr>
+                    <tr><td>NPL Disclosure</td><td class="text-[#DA212C]">None required</td><td class="text-[#349C44]">Mandatory quarterly</td></tr>
+                    <tr><td>External Audit</td><td class="text-[#DA212C]">Not mandated</td><td class="text-[#349C44]">Annual + BNM examination</td></tr>
+                    <tr><td>Donor Protection</td><td class="text-[#DA212C]">No PIDM</td><td class="text-[#349C44]">PIDM up to RM 250k</td></tr>
+                    <tr><td>Regulator Checks</td><td class="text-[#DA212C]">None</td><td class="text-[#349C44]">Regular BNM on-site</td></tr>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SLIDE 7 — RISK ANALYSIS
+    ════════════════════════════════════════════════════════════════ -->
+    <section class="slide px-6 md:px-12 lg:px-20 pt-6 md:pt-8 flex flex-col pb-20" id="slide-7">
+        <div class="slide-header animate-title">
+            <div>
+                <div class="step-badge">6. Risks</div>
+                <h2 class="text-xl md:text-2xl lg:text-3xl font-extrabold text-[#252a2e]">Risk Analysis</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 flex-grow">
+            <div class="space-y-3 reveal-step animate-fade-up">
+                <div class="kpi-card border-l-4 border-[#DA212C]">
+                    <p class="text-xs font-black text-[#DA212C] uppercase mb-1">⚠ Loan Book Opacity</p>
+                    <p class="text-xs leading-5">No obligation to disclose loan book composition. Donors cannot verify credit quality, concentration risk, NPL ratio, or actual leverage. A unit trust fund publishes daily NAV — these products do not.</p>
+                </div>
+                <div class="kpi-card border-l-4 border-[#DA212C]">
+                    <p class="text-xs font-black text-[#DA212C] uppercase mb-1">⚠ Ponzi Risk</p>
+                    <p class="text-xs leading-5">If the loan book deteriorates, returns can only come from: (1) eroding principal, or (2) new donor funds — the classic Ponzi mechanism. Consistent high-yield payouts without transparent loan performance data is a structural red flag.</p>
+                    <div class="mt-2 note-box">
+                        <div class="note-label bg-[#BF8F00] text-white text-[9px]">HISTORY</div>
+                        <div class="note-body text-[10px]">Malaysia's 1986–1988 bank cooperative collapse involved 32 cooperatives, 4 banks, RM 9.4B — all attracted funds with high-return promises outside normal banking regulation.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-3 reveal-step animate-fade-up">
+                <div class="kpi-card border-l-4 border-[#DA212C]">
+                    <p class="text-xs font-black text-[#DA212C] uppercase mb-1">⚠ 20% Early Withdrawal Penalty</p>
+                    <p class="text-xs leading-5 mb-2">Applies to the full setup amount for the <strong>entire 3-year tenure</strong> — not just remaining months.</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-[#fdecea] rounded p-2 text-center"><p class="text-[9px] font-bold text-gray-500 uppercase">RM 20k</p><p class="text-sm font-black text-[#DA212C]">RM 4k</p><p class="text-[9px] text-gray-400">penalty</p></div>
+                        <div class="bg-[#fdecea] rounded p-2 text-center"><p class="text-[9px] font-bold text-gray-500 uppercase">RM 50k</p><p class="text-sm font-black text-[#DA212C]">RM 10k</p><p class="text-[9px] text-gray-400">penalty</p></div>
+                        <div class="bg-[#fdecea] rounded p-2 text-center"><p class="text-[9px] font-bold text-gray-500 uppercase">RM 100k</p><p class="text-sm font-black text-[#DA212C]">RM 20k</p><p class="text-[9px] text-gray-400">penalty</p></div>
+                    </div>
+                    <p class="text-[10px] text-[#464b52] mt-2">Locks donors in even if warning signs emerge. Cannot exit early to protect capital.</p>
+                </div>
+                <div class="kpi-card border-l-4 border-[#90939f]">
+                    <p class="text-xs font-black text-[#464b52] uppercase mb-1">⚠ No PIDM Coverage</p>
+                    <p class="text-xs leading-5">Unlike bank fixed deposits (insured up to RM 250,000 per depositor per institution by PIDM), neither trust product carries any deposit insurance. In an insolvency, donors have no guaranteed recovery mechanism.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SLIDE 8 — FULL MARKET COMPARISON TABLE
+    ════════════════════════════════════════════════════════════════ -->
+    <section class="slide px-6 md:px-12 lg:px-20 pt-6 md:pt-8 flex flex-col pb-20" id="slide-8">
+        <div class="slide-header animate-title">
+            <div>
+                <div class="step-badge">7. Comparison</div>
+                <h2 class="text-xl md:text-2xl lg:text-3xl font-extrabold text-[#252a2e]">Full Product Market Comparison</h2>
+            </div>
+        </div>
+        <div class="flex-grow overflow-auto reveal-step animate-fade-up">
+            <table class="compare">
+                <thead>
+                    <tr>
+                        <th style="width:14%">Feature</th>
+                        <th style="background:#004f83;">ZICO IPT 3 (Lending)</th>
+                        <th style="background:#004f83;">UBB OT 2 (Lending)</th>
+                        <th style="background:#1D6B44;">SC-Licensed Unit Trust</th>
+                        <th style="background:#555;">Traditional Inter Vivos Trust</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Profit Source</td><td>Short-term loan interest</td><td>Short-term loan interest</td><td>Securities, bonds, equities (SC regulated)</td><td>No profit — estate asset preservation</td></tr>
+                    <tr><td>Return p.a. (net)</td><td><strong>8–9%</strong></td><td><strong>8–10%</strong></td><td>Variable; 4–20%+ (market-driven)</td><td>No fixed return</td></tr>
+                    <tr><td>Distribution</td><td>Quarterly</td><td>Yearly</td><td>Monthly/quarterly/annual</td><td>Upon trust events</td></tr>
+                    <tr><td>Lock-in</td><td>3 yrs (20% penalty)</td><td>3 yrs (20% penalty)</td><td>No lock-in (open-end)</td><td>Until trust purpose fulfilled</td></tr>
+                    <tr><td>Regulator</td><td>SSM / TCA 1949</td><td>SSM / TCA 1949</td><td>SC (CMSL) + BNM</td><td>SSM / Trustee Act 1949</td></tr>
+                    <tr><td>PIDM Coverage</td><td><span class="tag-red px-1 rounded text-[10px] font-bold">NOT covered</span></td><td><span class="tag-red px-1 rounded text-[10px] font-bold">NOT covered</span></td><td><span class="tag-amber px-1 rounded text-[10px] font-bold">Not covered (SC-supervised)</span></td><td><span class="tag-red px-1 rounded text-[10px] font-bold">NOT covered</span></td></tr>
+                    <tr><td>Transparency</td><td>Opaque — no loan book disclosure</td><td>Opaque — no loan book disclosure</td><td>Full: prospectus, fact sheet, daily NAV</td><td>Trust deed governs; trustee duties apply</td></tr>
+                    <tr><td>SC Licence</td><td><span class="tag-amber px-1 rounded text-[10px] font-bold">Exempt (lending)</span></td><td><span class="tag-amber px-1 rounded text-[10px] font-bold">Exempt (lending)</span></td><td><span class="tag-red px-1 rounded text-[10px] font-bold">CMSL mandatory</span></td><td><span class="tag-green px-1 rounded text-[10px] font-bold">No — conventional</span></td></tr>
+                    <tr><td>Custodian</td><td><span class="tag-red px-1 rounded text-[10px] font-bold">None</span></td><td><span class="tag-red px-1 rounded text-[10px] font-bold">None</span></td><td><span class="tag-green px-1 rounded text-[10px] font-bold">Independent custodian</span></td><td>N/A</td></tr>
+                    <tr><td>On Donor Death</td><td>Within 14 working days ✓</td><td>At end of trust term ✗</td><td>Redemption on death (flexible)</td><td>Immediate per trust deed</td></tr>
+                    <tr><td>Key Risk</td><td>Ponzi risk if loan book fails; no custodian</td><td>Yearly payout hides problems; no custodian</td><td>Market risk; regulated safeguards</td><td>Trustee mismanagement; low return</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SLIDE 9 — CONCLUSIONS & DUE DILIGENCE
+    ════════════════════════════════════════════════════════════════ -->
+    <section class="slide px-6 md:px-12 lg:px-20 pt-6 md:pt-8 flex flex-col pb-20" id="slide-9">
+        <div class="slide-header animate-title">
+            <div>
+                <div class="step-badge">8. Conclusions</div>
+                <h2 class="text-xl md:text-2xl lg:text-3xl font-extrabold text-[#252a2e]">Findings &amp; Due Diligence</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 flex-grow">
+            <div class="reveal-step animate-fade-up">
+                <p class="text-xs font-bold text-[#464b52] uppercase tracking-wider mb-2">Summary Findings</p>
+                <div class="space-y-2">
+                    <div class="risk-row"><div class="risk-icon bg-[#fdecea] text-[#DA212C]">✗</div><p class="text-xs leading-5"><strong>Lending trusts, not capital market.</strong> Returns from loan interest. No SC licence, no NAV, no fund manager.</p></div>
+                    <div class="risk-row"><div class="risk-icon bg-[#fdecea] text-[#DA212C]">✗</div><p class="text-xs leading-5"><strong>No independent custodian.</strong> Trust company wears multiple hats — control, deployment, and self-reporting.</p></div>
+                    <div class="risk-row"><div class="risk-icon bg-[#fff7e0] text-[#BF8F00]">!</div><p class="text-xs leading-5"><strong>Act 209 S.12 is good in principle</strong> — property-secured, 2/3 LTV — but donors cannot verify compliance.</p></div>
+                    <div class="risk-row"><div class="risk-icon bg-[#fdecea] text-[#DA212C]">✗</div><p class="text-xs leading-5"><strong>20% penalty</strong> on full capital for entire tenure traps donors even if warning signs appear.</p></div>
+                    <div class="risk-row"><div class="risk-icon bg-[#eef8f0] text-[#349C44]">✓</div><p class="text-xs leading-5"><strong>ZICO IPT 3</strong> has meaningful estate liquidity edge — 14-day death payout vs UBB's end-of-term.</p></div>
+                    <div class="risk-row"><div class="risk-icon bg-[#fff7e0] text-[#BF8F00]">!</div><p class="text-xs leading-5"><strong>Regulatory tightening ahead</strong> — New Trust Companies Bill pending; SC watch list active.</p></div>
+                </div>
+            </div>
+            <div class="reveal-step animate-fade-up">
+                <p class="text-xs font-bold text-[#464b52] uppercase tracking-wider mb-2">Due Diligence Questions to Ask</p>
+                <div class="kpi-card p-4">
+                    <div class="space-y-2">
+                        <div class="flex items-start gap-2"><span class="text-[#0063a3] font-black text-xs mt-0.5 flex-shrink-0">Q</span><p class="text-xs">Who are the borrowers? What are their credit profiles?</p></div>
+                        <div class="flex items-start gap-2"><span class="text-[#0063a3] font-black text-xs mt-0.5 flex-shrink-0">Q</span><p class="text-xs">What is the current non-performing loan (NPL) ratio?</p></div>
+                        <div class="flex items-start gap-2"><span class="text-[#0063a3] font-black text-xs mt-0.5 flex-shrink-0">Q</span><p class="text-xs">Is the trust independently audited? Can I see the latest audited accounts?</p></div>
+                        <div class="flex items-start gap-2"><span class="text-[#0063a3] font-black text-xs mt-0.5 flex-shrink-0">Q</span><p class="text-xs">What is the maximum single-borrower exposure?</p></div>
+                        <div class="flex items-start gap-2"><span class="text-[#0063a3] font-black text-xs mt-0.5 flex-shrink-0">Q</span><p class="text-xs">What happens to the loan book if the trust company is wound up before year 3?</p></div>
+                        <div class="flex items-start gap-2"><span class="text-[#0063a3] font-black text-xs mt-0.5 flex-shrink-0">Q</span><p class="text-xs">Has any SC or SSM investigation or enforcement action been taken against the company or directors?</p></div>
+                        <div class="flex items-start gap-2"><span class="text-[#fbad26] font-black text-xs mt-0.5 flex-shrink-0">Q</span><p class="text-xs font-semibold"><strong>S.12 Compliance:</strong> Is every loan property-secured with an independent valuation? Can you confirm all loans comply with the 2/3 LTV cap under Act 209?</p></div>
+                        <div class="flex items-start gap-2"><span class="text-[#fbad26] font-black text-xs mt-0.5 flex-shrink-0">Q</span><p class="text-xs font-semibold"><strong>Custodian:</strong> Is there an independent custodian or third-party auditor verifying the loan book? If not, what independent oversight exists?</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SLIDE 10 — END SLIDE
+    ════════════════════════════════════════════════════════════════ -->
+    <section class="slide" id="slide-10">
+        <div class="absolute inset-0 bg-black z-0">
+            <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=2070&auto=format&fit=crop"
+                 alt="Finance background" class="w-full h-full object-cover opacity-25">
+            <div class="absolute inset-0 bg-gradient-to-br from-[#003054] via-[#003054]/95 to-[#0063a3]/80"></div>
+        </div>
+        <div class="relative z-10 flex h-full w-full items-center justify-center p-8 md:p-16">
+            <div class="text-center max-w-2xl animate-title">
+                <div class="w-16 h-16 rounded-full bg-white/10 border border-white/30 flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8 text-[#fbad26]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                </div>
+                <p class="text-[var(--trimble-yellow)] font-bold text-sm uppercase tracking-widest mb-3">Malaysia Cash Trust Market — Research Report</p>
+                <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-6 leading-tight">Know Before<br>You Trust</h1>
+                <p class="text-gray-300 text-sm md:text-base leading-7 mb-8">The law provides a framework. The framework requires verification. Without an independent custodian or mandatory disclosure, donors rely entirely on the trust company's integrity that Act 209 safeguards are being followed.</p>
+                <div class="grid grid-cols-3 gap-3 max-w-md mx-auto mb-8">
+                    <div class="bg-white/10 rounded p-2 border border-white/20 text-center"><p class="text-[10px] text-gray-300 font-bold uppercase">Act 209 S.12</p><p class="text-sm font-black text-white">Good in<br>Principle</p></div>
+                    <div class="bg-white/10 rounded p-2 border border-white/20 text-center"><p class="text-[10px] text-gray-300 font-bold uppercase">Custodian</p><p class="text-sm font-black text-[#DA212C]">Missing<br>Layer</p></div>
+                    <div class="bg-white/10 rounded p-2 border border-white/20 text-center"><p class="text-[10px] text-gray-300 font-bold uppercase">SC 2026</p><p class="text-sm font-black text-[#fbad26]">Watch<br>Space</p></div>
+                </div>
+                <p class="text-gray-500 text-[10px]">This report is for informational purposes only. Not financial, legal, or investment advice. Consult a licensed advisor before committing funds.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         BOTTOM NAV BAR
+    ════════════════════════════════════════════════════════════════ -->
+    <div class="absolute bottom-0 left-0 w-full z-40 bg-white border-t border-gray-200 shadow-[0_-4px_15px_rgba(0,0,0,0.05)]">
+        <div class="w-full bg-gray-200 h-1.5">
+            <div id="progress-bar" class="bg-[#0063a3] h-1.5 transition-all duration-300" style="width:9.09%"></div>
+        </div>
+        <div class="flex justify-between items-center px-4 md:px-6 h-12 md:h-14">
+            <div class="flex items-center space-x-2 w-1/2 md:w-1/3">
+                <button id="prev-btn" class="p-1 md:p-2 rounded hover:bg-gray-100 text-gray-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed z-30">
+                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <button id="next-btn" class="p-1 md:p-2 rounded hover:bg-gray-100 text-gray-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed z-30">
+                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+                <div class="ml-2 relative z-30">
+                    <select id="slide-dropdown" class="appearance-none bg-transparent border border-gray-300 text-gray-700 py-1 pl-2 pr-6 md:py-1.5 md:pl-3 md:pr-8 rounded text-[10px] md:text-sm font-semibold focus:outline-none focus:border-[#0063a3] cursor-pointer hover:bg-gray-50 transition-colors">
+                        <option value="0">0. Title</option>
+                        <option value="1">1. Executive Summary</option>
+                        <option value="2">2. Product Comparison</option>
+                        <option value="3">3. Lending vs Capital Market</option>
+                        <option value="4">4. Regulatory Timeline</option>
+                        <option value="5">5. The Custodian Gap</option>
+                        <option value="6">6. Section 12 Act 209</option>
+                        <option value="7">7. Risk Analysis</option>
+                        <option value="8">8. Market Comparison Table</option>
+                        <option value="9">9. Conclusions &amp; Due Diligence</option>
+                        <option value="10">10. End</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-gray-500">
+                        <svg class="fill-current h-3 w-3" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hidden md:flex w-1/3 justify-center items-center text-xs font-bold text-[#90939f] uppercase tracking-widest">
+                Malaysia Cash Trust — Research 2026
+            </div>
+
+            <div class="w-1/2 md:w-1/3 flex justify-end items-center space-x-1 md:space-x-2">
+                <div class="h-6 w-px bg-gray-300 mx-1 hidden sm:block"></div>
+                <button id="text-btn" title="Add Text" class="p-1 md:p-2 rounded text-gray-600 hover:bg-gray-100 transition-colors relative border border-transparent z-30">
+                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+                    <span id="text-indicator" class="hidden absolute top-1 right-1 w-2 h-2 bg-[#fbad26] rounded-full border border-white"></span>
+                </button>
+                <button id="marker-btn" title="Draw" class="p-1 md:p-2 rounded text-gray-600 hover:bg-gray-100 transition-colors relative border border-transparent z-30">
+                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    <span id="marker-indicator" class="hidden absolute top-1 right-1 w-2 h-2 bg-[#fbad26] rounded-full border border-white"></span>
+                </button>
+                <button id="clear-draw-btn" title="Clear Canvas" class="p-1 md:p-2 rounded text-red-500 hover:bg-red-50 transition-colors z-30">
+                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+                <div class="h-6 w-px bg-gray-300 mx-1 hidden sm:block"></div>
+                <button id="fullscreen-btn" title="Fullscreen" class="hidden sm:block p-1 md:p-2 rounded text-gray-600 hover:bg-gray-100 transition-colors z-30">
+                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l-5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    let currentSlideIndex = 0;
+
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const slideDropdown = document.getElementById('slide-dropdown');
+    const progressBar = document.getElementById('progress-bar');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const navZoneLeft = document.getElementById('nav-zone-left');
+    const navZoneRight = document.getElementById('nav-zone-right');
+
+    const canvas = document.getElementById('drawing-canvas');
+    const ctx = canvas.getContext('2d');
+    const markerBtn = document.getElementById('marker-btn');
+    const textBtn = document.getElementById('text-btn');
+    const clearBtn = document.getElementById('clear-draw-btn');
+    const markerIndicator = document.getElementById('marker-indicator');
+    const textIndicator = document.getElementById('text-indicator');
+
+    let currentTool = null;
+    let isDrawing = false;
+    const slideHistory = {};
+
+    function resizeCanvas() {
+        let save = (canvas.width > 0 && canvas.height > 0) ? canvas.toDataURL() : null;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        if (save) { const img = new Image(); img.src = save; img.onload = () => ctx.drawImage(img, 0, 0); }
+        else restoreCanvas(currentSlideIndex);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function saveCanvas() { slideHistory[currentSlideIndex] = canvas.toDataURL(); }
+    function restoreCanvas(i) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (slideHistory[i]) { const img = new Image(); img.src = slideHistory[i]; img.onload = () => ctx.drawImage(img, 0, 0); }
+    }
+
+    function restartAnimations(el) {
+        el.querySelectorAll('.animate-title,.animate-fade-up,.grow-right,.animate-fade-up-immediate,.grow-right-immediate').forEach(e => {
+            e.style.animation = 'none'; e.offsetHeight; e.style.animation = null;
+        });
+    }
+
+    function showSlide(index) {
+        if (index < 0 || index >= totalSlides || index === currentSlideIndex) return;
+        saveCanvas();
+        slides[currentSlideIndex].classList.remove('active');
+        currentSlideIndex = parseInt(index);
+        slides[currentSlideIndex].classList.add('active');
+        slides[currentSlideIndex].querySelectorAll('.reveal-step').forEach(s => s.classList.remove('revealed'));
+        restartAnimations(slides[currentSlideIndex]);
+        restoreCanvas(currentSlideIndex);
+        updateUI();
+    }
+
+    function handleNext() {
+        const unrevealed = slides[currentSlideIndex].querySelectorAll('.reveal-step:not(.revealed)');
+        if (unrevealed.length > 0) { unrevealed[0].classList.add('revealed'); restartAnimations(unrevealed[0]); }
+        else if (currentSlideIndex < totalSlides - 1) showSlide(currentSlideIndex + 1);
+    }
+
+    function handlePrev() {
+        const revealed = slides[currentSlideIndex].querySelectorAll('.reveal-step.revealed');
+        if (revealed.length > 0) revealed[revealed.length - 1].classList.remove('revealed');
+        else if (currentSlideIndex > 0) {
+            showSlide(currentSlideIndex - 1);
+            setTimeout(() => slides[currentSlideIndex].querySelectorAll('.reveal-step').forEach(s => s.classList.add('revealed')), 50);
+        }
+    }
+
+    function updateUI() {
+        slideDropdown.value = currentSlideIndex;
+        progressBar.style.width = `${((currentSlideIndex + 1) / totalSlides) * 100}%`;
+        prevBtn.disabled = currentSlideIndex === 0;
+        nextBtn.disabled = currentSlideIndex === totalSlides - 1;
+    }
+    updateUI();
+
+    navZoneLeft.addEventListener('click', handlePrev);
+    navZoneRight.addEventListener('click', handleNext);
+    prevBtn.addEventListener('click', handlePrev);
+    nextBtn.addEventListener('click', handleNext);
+    slideDropdown.addEventListener('change', e => showSlide(e.target.value));
+
+    document.addEventListener('keydown', e => {
+        if (e.target.tagName.toLowerCase() === 'input') return;
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); handleNext(); }
+        else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); handlePrev(); }
+    });
+
+    let touchStartX = 0, touchStartY = 0;
+    document.addEventListener('touchstart', e => { if (currentTool) return; touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }, { passive: true });
+    document.addEventListener('touchend', e => {
+        if (currentTool) return;
+        const dx = touchStartX - e.changedTouches[0].screenX;
+        const dy = touchStartY - e.changedTouches[0].screenY;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) { dx > 0 ? handleNext() : handlePrev(); }
+    }, { passive: true });
+
+    if (fullscreenBtn) fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+        else document.exitFullscreen();
+    });
+
+    function setTool(tool) {
+        currentTool = tool;
+        canvas.classList.add('pointer-events-none');
+        markerBtn.classList.remove('bg-gray-100','border-gray-300');
+        textBtn.classList.remove('bg-gray-100','border-gray-300');
+        markerIndicator.classList.add('hidden');
+        textIndicator.classList.add('hidden');
+        document.body.style.cursor = 'default';
+        navZoneLeft.classList.remove('pointer-events-none');
+        navZoneRight.classList.remove('pointer-events-none');
+        if (tool) {
+            canvas.classList.remove('pointer-events-none');
+            navZoneLeft.classList.add('pointer-events-none');
+            navZoneRight.classList.add('pointer-events-none');
+            if (tool === 'marker') { markerBtn.classList.add('bg-gray-100','border-gray-300'); markerIndicator.classList.remove('hidden'); document.body.style.cursor = 'crosshair'; }
+            else if (tool === 'text') { textBtn.classList.add('bg-gray-100','border-gray-300'); textIndicator.classList.remove('hidden'); document.body.style.cursor = 'text'; }
+        }
+    }
+
+    markerBtn.addEventListener('click', () => setTool(currentTool === 'marker' ? null : 'marker'));
+    textBtn.addEventListener('click', () => setTool(currentTool === 'text' ? null : 'text'));
+    clearBtn.addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); slideHistory[currentSlideIndex] = null; });
+
+    function startDrawing(e) {
+        if (currentTool !== 'marker') return;
+        isDrawing = true;
+        ctx.strokeStyle = '#fbad26'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        draw(e);
+    }
+    function stopDrawing() { if (!isDrawing) return; isDrawing = false; ctx.beginPath(); saveCanvas(); }
+    function draw(e) {
+        if (!isDrawing || currentTool !== 'marker') return;
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.type.includes('touch') ? e.touches[0].clientX : e.clientX) - rect.left;
+        const y = (e.type.includes('touch') ? e.touches[0].clientY : e.clientY) - rect.top;
+        ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y);
+    }
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+    canvas.addEventListener('touchstart', e => { if (currentTool === 'marker') { e.preventDefault(); startDrawing(e); } }, { passive: false });
+    canvas.addEventListener('touchmove', e => { if (currentTool === 'marker') { e.preventDefault(); draw(e); } }, { passive: false });
+    canvas.addEventListener('touchend', stopDrawing);
+
+    canvas.addEventListener('click', e => {
+        if (currentTool !== 'text') return;
+        if (document.getElementById('temp-text-input')) return;
+        const clientX = e.clientX, clientY = e.clientY;
+        const input = document.createElement('input');
+        input.type = 'text'; input.id = 'temp-text-input'; input.placeholder = 'Type & Enter...';
+        Object.assign(input.style, { position:'absolute', left:`${clientX}px`, top:`${clientY}px`, transform:'translateY(-50%)', color:'#fbad26', fontSize:'22px', fontFamily:'Open Sans, sans-serif', fontWeight:'bold', background:'rgba(255,255,255,0.95)', border:'2px dashed #fbad26', padding:'4px 8px', borderRadius:'4px', outline:'none', zIndex:'1000', minWidth:'200px', boxShadow:'0 4px 15px rgba(0,0,0,0.2)' });
+        document.body.appendChild(input);
+        input.focus();
+        function stampText() {
+            const text = input.value.trim();
+            if (text) {
+                const rect = canvas.getBoundingClientRect();
+                ctx.font = 'bold 22px "Open Sans", sans-serif'; ctx.fillStyle = '#fbad26'; ctx.textBaseline = 'middle';
+                ctx.fillText(text, clientX - rect.left + 8, clientY - rect.top);
+                saveCanvas();
+            }
+            if (document.body.contains(input)) input.remove();
+        }
+        input.addEventListener('blur', stampText);
+        input.addEventListener('keydown', evt => { if (evt.key === 'Enter') stampText(); if (evt.key === 'Escape') input.remove(); });
+    });
+});
+</script>
+</body>
+</html>
