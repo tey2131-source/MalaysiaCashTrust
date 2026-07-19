@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Malaysia Cash Trust Market Analysis</title>
+    
+    <!-- Prevent Search Engine Indexing -->
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0f172a">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --brand-primary: #0f172a; /* Slate 900 */
+            --brand-secondary: #0284c7; /* Sky 600 */
+            --brand-accent: #f59e0b; /* Amber 500 */
+            --brand-light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--brand-light);
+            color: #1e293b;
+            overflow: hidden; 
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            overscroll-behavior-y: none; 
+        }
+
+        /* Portrait Warning */
+        #portrait-warning { display: none; }
+        @media screen and (orientation: portrait) {
+            #presentation-container { display: none !important; }
+            #portrait-warning { 
+                display: flex; 
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                position: fixed;
+                inset: 0;
+                background-color: var(--brand-primary);
+                color: white;
+                z-index: 9999;
+                text-align: center;
+                padding: 2rem;
+            }
+        }
+
+        input { user-select: auto; }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            box-sizing: border-box;
+            background-color: var(--brand-light);
+            padding-bottom: 4rem; /* space for control bar */
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .slide.active {
+            display: block;
+            opacity: 1;
+            z-index: 10;
+        }
+
+        /* Nav Zones to allow clicking edges to change slides */
+        .nav-zone {
+            position: absolute;
+            top: 0;
+            height: calc(100% - 4rem); 
+            z-index: 20;
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        @keyframes fadeRight {
+            from { opacity: 0; transform: translateX(-40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes zoomFade {
+            from { opacity: 0; transform: scale(0.97) translateY(15px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .slide.active .animate-title { animation: fadeRight 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .reveal-step { opacity: 0; visibility: hidden; }
+        .reveal-step.revealed { visibility: visible; }
+        .slide.active .reveal-step.revealed.animate-fade-up { 
+            animation: zoomFade 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+        }
+        
+        .step-badge {
+            background-color: var(--brand-secondary);
+            color: white;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        /* Custom Table Styling */
+        .analysis-table th {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        .analysis-table td {
+            padding: 1rem;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #e2e8f0;
+            background-color: #ffffff;
+            vertical-align: top;
+        }
+        .analysis-table tr:hover td {
+            background-color: #f8fafc;
+        }
+        .highlight-cell { background-color: #f0f9ff !important; }
+        .alert-cell { background-color: #fef2f2 !important; color: #991b1b; }
+    </style>
+</head>
+<body class="antialiased selection:bg-sky-200 selection:text-sky-900">
+
+    <div id="portrait-warning">
+        <svg class="w-20 h-20 mb-6 text-slate-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 10.5h16M4 10.5a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2v-6a2 2 0 00-2-2M4 10.5v-4a2 2 0 012-2h12a2 2 0 012 2v4M8 21v-3m8 3v-3M9 14h6"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6.5a2 2 0 012-2h.01a2 2 0 012 2v.01a2 2 0 01-2 2H12a2 2 0 01-2-2V6.5z"></path></svg>
+        <h2 class="text-3xl font-bold mb-4">Please Rotate Your Device</h2>
+        <p class="text-lg text-slate-300 max-w-md mx-auto">This professional analysis dashboard is optimized for landscape viewing.</p>
+    </div>
+
+    <main id="presentation-container" class="relative w-screen h-screen bg-slate-50">
+        
+        <!-- Canvas Layer for Scratch / Drawing -->
+        <canvas id="drawing-canvas" class="absolute top-0 left-0 w-full h-full pointer-events-none" style="z-index: 25;"></canvas>
+        
+        <!-- Safe Transparent Navigation Zones -->
+        <div id="nav-zone-left" class="nav-zone left-0 w-[10%]" title="Previous Slide"></div>
+        <div id="nav-zone-right" class="nav-zone right-0 w-[90%]" title="Next Slide"></div>
+        
+        <!-- SLIDE 0: TITLE -->
+        <section class="slide active" id="slide-0">
+            <div class="absolute inset-0 z-0 bg-[#0c1f38] flex justify-center items-center">
+                <img src="Cover.png" alt="Malaysia Cash Trust Market Analysis Title Slide" class="w-full h-full object-cover">
+            </div>
+        </section>
+
+        <!-- SLIDE 1: INFOGRAPHIC -->
+        <section class="slide p-6 md:p-12 flex flex-col items-center justify-center bg-white" id="slide-1">
+            <div class="w-full max-w-6xl mb-4 animate-title text-left self-start">
+                <div class="step-badge">Visual Overview</div>
+                <h2 class="text-2xl lg:text-3xl font-extrabold text-slate-900">Market Infographic Guide</h2>
+            </div>
+            
+            <div class="reveal-step animate-fade-up w-full h-full max-h-[70vh] flex justify-center items-center rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-inner">
+                <!-- Using the uploaded image as the placeholder -->
+                <img src="Malaysia_Cash_Trust_Comparison_Guide.png" 
+                     alt="Navigating Malaysia's Cash Trusts Infographic" 
+                     class="max-w-full max-h-full object-contain drop-shadow-md rounded">
+            </div>
+        </section>
+
+        <!-- SLIDE 2: MARKET ANALYSIS (FINANCIAL) -->
+        <section class="slide p-6 md:p-12" id="slide-2">
+            <div class="w-full mb-6">
+                <div class="step-badge animate-title">Market Analysis (Part 1)</div>
+                <h2 class="text-2xl lg:text-3xl font-extrabold text-slate-900 animate-title">Financial & Operational Mechanics</h2>
+                <p class="text-slate-500 mt-2 animate-title">Comparing structural features of leading cash trusts against regulated alternatives.</p>
+            </div>
+
+            <div class="w-full overflow-x-auto reveal-step animate-fade-up rounded-xl border border-slate-200 shadow-sm">
+                <table class="min-w-full analysis-table w-full">
+                    <thead>
+                        <tr>
+                            <th class="w-1/5">Feature</th>
+                            <th class="w-1/5 border-l border-slate-200 bg-sky-50 text-sky-900">ZICO IPT 3<br><span class="text-xs font-normal text-sky-700">(Money Lending)</span></th>
+                            <th class="w-1/5 border-l border-slate-200 bg-sky-50 text-sky-900">UBB OT 2<br><span class="text-xs font-normal text-sky-700">(Money Lending)</span></th>
+                            <th class="w-1/5 border-l border-slate-200">SC-Licensed Unit Trust<br><span class="text-xs font-normal text-slate-500">(Capital Market)</span></th>
+                            <th class="w-1/5 border-l border-slate-200">Traditional Inter Vivos<br><span class="text-xs font-normal text-slate-500">(Asset Preservation)</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="font-bold text-slate-700">Profit Source</td>
+                            <td class="border-l border-slate-200 highlight-cell">Short-term loans / lending</td>
+                            <td class="border-l border-slate-200 highlight-cell">Short-term loans / lending</td>
+                            <td class="border-l border-slate-200 text-slate-600">Securities, bonds, equities<br><span class="text-xs text-sky-600 font-bold">(SC Regulated)</span></td>
+                            <td class="border-l border-slate-200 text-slate-500 italic">No profit-driven. Estate asset preservation.</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold text-slate-700">Return p.a. (net)</td>
+                            <td class="border-l border-slate-200 font-semibold text-slate-900">8–9%</td>
+                            <td class="border-l border-slate-200 font-semibold text-slate-900">8–10%</td>
+                            <td class="border-l border-slate-200 text-slate-600">Variable; typically 4–20%+<br><span class="text-xs">(Market-dependent)</span></td>
+                            <td class="border-l border-slate-200 text-slate-500">No fixed return</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold text-slate-700">Distribution</td>
+                            <td class="border-l border-slate-200">Quarterly</td>
+                            <td class="border-l border-slate-200">Yearly</td>
+                            <td class="border-l border-slate-200 text-slate-600">Monthly / quarterly / annual</td>
+                            <td class="border-l border-slate-200 text-slate-500">Upon trust events (death, milestone)</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold text-slate-700">Lock-in</td>
+                            <td class="border-l border-slate-200 alert-cell">3 years<br><span class="font-bold">20% penalty</span> for early exit</td>
+                            <td class="border-l border-slate-200 alert-cell">3 years<br><span class="font-bold">20% penalty</span> for early exit</td>
+                            <td class="border-l border-slate-200 text-slate-600 font-medium">No lock-in<br><span class="text-xs">(Open-end funds)</span></td>
+                            <td class="border-l border-slate-200 text-slate-500">Perpetual until purpose fulfilled</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold text-slate-700">On Donor Death</td>
+                            <td class="border-l border-slate-200 text-emerald-700 font-semibold bg-emerald-50">Capital to beneficiary within 14 working days</td>
+                            <td class="border-l border-slate-200 text-amber-700 font-semibold bg-amber-50">Capital paid at end of trust term</td>
+                            <td class="border-l border-slate-200 text-slate-600">Redemption on death (flexible)</td>
+                            <td class="border-l border-slate-200 text-slate-600">Immediate distribution per deed</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SLIDE 3: MARKET ANALYSIS (REGULATORY) -->
+        <section class="slide p-6 md:p-12" id="slide-3">
+            <div class="w-full mb-6">
+                <div class="step-badge animate-title">Market Analysis (Part 2)</div>
+                <h2 class="text-2xl lg:text-3xl font-extrabold text-slate-900 animate-title">Regulatory & Risk Profile</h2>
+                <p class="text-slate-500 mt-2 animate-title">Assessing oversight, deposit protections, and systemic risks.</p>
+            </div>
+
+            <div class="w-full overflow-x-auto reveal-step animate-fade-up rounded-xl border border-slate-200 shadow-sm">
+                <table class="min-w-full analysis-table w-full">
+                    <thead>
+                        <tr>
+                            <th class="w-1/5">Feature</th>
+                            <th class="w-1/5 border-l border-slate-200 bg-sky-50 text-sky-900">ZICO IPT 3</th>
+                            <th class="w-1/5 border-l border-slate-200 bg-sky-50 text-sky-900">UBB OT 2</th>
+                            <th class="w-1/5 border-l border-slate-200">SC-Licensed Unit Trust</th>
+                            <th class="w-1/5 border-l border-slate-200">Traditional Inter Vivos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="font-bold text-slate-700">Regulator</td>
+                            <td class="border-l border-slate-200">SSM only<br><span class="text-xs text-slate-500">(Trust Companies Act 1949)</span></td>
+                            <td class="border-l border-slate-200">SSM only<br><span class="text-xs text-slate-500">(Trust Companies Act 1949)</span></td>
+                            <td class="border-l border-slate-200 font-bold text-emerald-700 bg-emerald-50">SC (CMSL required) + BNM oversight</td>
+                            <td class="border-l border-slate-200 text-slate-600">SSM / Trustee Act 1949</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold text-slate-700">PIDM Insurance</td>
+                            <td class="border-l border-slate-200 alert-cell font-bold">NOT covered</td>
+                            <td class="border-l border-slate-200 alert-cell font-bold">NOT covered</td>
+                            <td class="border-l border-slate-200 text-slate-600">NOT covered <span class="text-xs">(but SC-supervised)</span></td>
+                            <td class="border-l border-slate-200 text-slate-500">NOT covered</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold text-slate-700">Transparency</td>
+                            <td class="border-l border-slate-200 highlight-cell">Opaque — no disclosure of loan book</td>
+                            <td class="border-l border-slate-200 highlight-cell">Opaque — no disclosure of loan book</td>
+                            <td class="border-l border-slate-200 text-emerald-700 bg-emerald-50">Full disclosure: prospectus, fund fact sheet, daily NAV</td>
+                            <td class="border-l border-slate-200 text-slate-600">Governed by trust deed</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold text-slate-700">Investor Recourse</td>
+                            <td class="border-l border-slate-200 text-amber-700">Trust deed only; no SC/BNM protection</td>
+                            <td class="border-l border-slate-200 text-amber-700">Trust deed only; no SC/BNM protection</td>
+                            <td class="border-l border-slate-200 text-slate-600 font-medium">SC enforcement, investor compensation fund</td>
+                            <td class="border-l border-slate-200 text-slate-600">Trustee Act duties; court jurisdiction</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold text-slate-700">Key Risk</td>
+                            <td class="border-l border-slate-200 alert-cell"><span class="font-bold">Ponzi risk</span> if loan book fails; unregulated</td>
+                            <td class="border-l border-slate-200 alert-cell"><span class="font-bold">Opaque lending;</span> yearly payout delays visibility of problems</td>
+                            <td class="border-l border-slate-200 text-slate-600">Market risk; regulated safeguards in place</td>
+                            <td class="border-l border-slate-200 text-slate-500">Trustee mismanagement</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Regulatory Note -->
+            <div class="reveal-step animate-fade-up mt-6 bg-slate-100 p-4 rounded-lg border border-slate-300 flex items-start">
+                <svg class="w-6 h-6 text-slate-500 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm">Regulatory Update (2026)</h4>
+                    <p class="text-sm text-slate-600 mt-1">Pending tabling of the new <strong>Trust Companies Bill</strong> to replace the 1949 Act, aiming to introduce mandatory registration, beneficial ownership reporting, and modernize corporate governance to close existing loopholes in unregulated cash trust schemes.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOTTOM CONTROL BAR -->
+        <div class="absolute bottom-0 left-0 w-full z-40 bg-white border-t border-slate-200 shadow-[0_-4px_15px_rgba(0,0,0,0.05)]">
+            <!-- Progress indicator -->
+            <div class="w-full bg-slate-200 h-1">
+                <div id="progress-bar" class="bg-sky-600 h-1 w-[25%] transition-all duration-300"></div>
+            </div>
+            
+            <div class="flex justify-between items-center px-4 md:px-6 h-12 md:h-14">
+                
+                <!-- Left: Navigation -->
+                <div class="flex items-center space-x-2 w-1/3">
+                    <button id="prev-btn" title="Previous Slide" class="p-2 rounded hover:bg-slate-100 text-slate-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed z-30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <button id="next-btn" title="Next Slide / Build" class="p-2 rounded hover:bg-slate-100 text-slate-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed z-30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    
+                    <div class="ml-2 relative z-30">
+                        <select id="slide-dropdown" class="appearance-none bg-transparent border border-slate-300 text-slate-700 py-1.5 pl-3 pr-8 rounded text-sm font-semibold focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 cursor-pointer hover:bg-slate-50 transition-colors">
+                            <option value="0">0. Title Slide</option>
+                            <option value="1">1. Infographic Overview</option>
+                            <option value="2">2. Financial Analysis</option>
+                            <option value="3">3. Regulatory & Risk</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Middle: Title -->
+                <div class="hidden md:flex w-1/3 justify-center items-center text-sm font-bold text-slate-400 uppercase tracking-widest">
+                    Market Research Presentation
+                </div>
+
+                <!-- Right: Tools -->
+                <div class="w-2/3 md:w-1/3 flex justify-end items-center space-x-2">
+                    <div class="h-6 w-px bg-slate-300 mx-2"></div>
+
+                    <button id="text-btn" title="Add Text Annotation" class="p-2 rounded text-slate-600 hover:bg-slate-100 transition-colors relative border border-transparent z-30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7V4h16v3M9 20h6M12 4v16"></path></svg>
+                        <span id="text-indicator" class="hidden absolute top-1 right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white"></span>
+                    </button>
+
+                    <button id="marker-btn" title="Draw/Scratch" class="p-2 rounded text-slate-600 hover:bg-slate-100 transition-colors relative border border-transparent z-30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        <span id="marker-indicator" class="hidden absolute top-1 right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white"></span>
+                    </button>
+                    
+                    <button id="clear-draw-btn" title="Clear Canvas" class="p-2 rounded text-red-500 hover:bg-red-50 transition-colors z-30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+
+                    <div class="h-6 w-px bg-slate-300 mx-2 hidden sm:block"></div>
+
+                    <!-- Fullscreen -->
+                    <button id="fullscreen-btn" title="Fullscreen" class="hidden sm:block p-2 rounded text-slate-600 hover:bg-slate-100 transition-colors z-30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l-5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slides = document.querySelectorAll('.slide');
+            const totalSlides = slides.length;
+            let currentSlideIndex = 0;
+
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const slideDropdown = document.getElementById('slide-dropdown');
+            const progressBar = document.getElementById('progress-bar');
+            
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            const navZoneLeft = document.getElementById('nav-zone-left');
+            const navZoneRight = document.getElementById('nav-zone-right');
+
+            /* Canvas Scratch / Annotation System */
+            const canvas = document.getElementById('drawing-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const markerBtn = document.getElementById('marker-btn');
+            const textBtn = document.getElementById('text-btn');
+            const clearBtn = document.getElementById('clear-draw-btn');
+            const markerIndicator = document.getElementById('marker-indicator');
+            const textIndicator = document.getElementById('text-indicator');
+            
+            let currentTool = null; 
+            let isDrawing = false;
+            const slideHistory = {}; 
+
+            function resizeCanvas() {
+                let tempSave = null;
+                if(canvas.width > 0 && canvas.height > 0) tempSave = canvas.toDataURL();
+                
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                
+                if(tempSave) {
+                    const img = new Image();
+                    img.src = tempSave;
+                    img.onload = () => ctx.drawImage(img, 0, 0);
+                } else {
+                    restoreCanvas(currentSlideIndex);
+                }
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            function saveCanvas() { 
+                slideHistory[currentSlideIndex] = canvas.toDataURL(); 
+            }
+
+            function restoreCanvas(index) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (slideHistory[index]) {
+                    const img = new Image();
+                    img.src = slideHistory[index];
+                    img.onload = () => ctx.drawImage(img, 0, 0);
+                }
+            }
+
+            function restartAnimations(container) {
+                const animatedEls = container.querySelectorAll('.animate-title, .animate-fade-up');
+                animatedEls.forEach(el => {
+                    el.style.animation = 'none';
+                    el.offsetHeight; 
+                    el.style.animation = null; 
+                });
+            }
+
+            function showSlide(index) {
+                if (index < 0 || index >= totalSlides || index === currentSlideIndex) return;
+                
+                saveCanvas(); 
+                
+                slides[currentSlideIndex].classList.remove('active');
+                currentSlideIndex = parseInt(index);
+                slides[currentSlideIndex].classList.add('active');
+                
+                const steps = slides[currentSlideIndex].querySelectorAll('.reveal-step');
+                steps.forEach(step => step.classList.remove('revealed'));
+
+                restartAnimations(slides[currentSlideIndex]);
+                restoreCanvas(currentSlideIndex); 
+                
+                updateUI();
+            }
+
+            // Step-by-step reveal logic
+            function handleNext() {
+                const currentSlideEl = slides[currentSlideIndex];
+                const unrevealed = currentSlideEl.querySelectorAll('.reveal-step:not(.revealed)');
+                
+                if (unrevealed.length > 0) {
+                    unrevealed[0].classList.add('revealed');
+                    restartAnimations(unrevealed[0]);
+                } else if (currentSlideIndex < totalSlides - 1) {
+                    showSlide(currentSlideIndex + 1);
+                }
+            }
+            
+            function handlePrev() {
+                const currentSlideEl = slides[currentSlideIndex];
+                const revealed = currentSlideEl.querySelectorAll('.reveal-step.revealed');
+                
+                if (revealed.length > 0) {
+                    revealed[revealed.length - 1].classList.remove('revealed');
+                } else if (currentSlideIndex > 0) {
+                    showSlide(currentSlideIndex - 1);
+                    setTimeout(() => {
+                        const steps = slides[currentSlideIndex].querySelectorAll('.reveal-step');
+                        steps.forEach(step => step.classList.add('revealed'));
+                    }, 50);
+                }
+            }
+
+            function updateUI() {
+                slideDropdown.value = currentSlideIndex;
+                const progressPercentage = ((currentSlideIndex + 1) / totalSlides) * 100;
+                progressBar.style.width = `${progressPercentage}%`;
+                
+                prevBtn.disabled = currentSlideIndex === 0;
+                nextBtn.disabled = currentSlideIndex === totalSlides - 1;
+            }
+            updateUI(); 
+
+            // Navigation Bindings
+            navZoneLeft.addEventListener('click', handlePrev);
+            navZoneRight.addEventListener('click', handleNext);
+            prevBtn.addEventListener('click', handlePrev);
+            nextBtn.addEventListener('click', handleNext);
+            slideDropdown.addEventListener('change', (e) => showSlide(e.target.value));
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if(e.target.tagName.toLowerCase() === 'input') return; // Don't flip slides when typing
+                if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                    e.preventDefault(); handleNext();
+                } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                    e.preventDefault(); handlePrev();
+                }
+            });
+
+            if(fullscreenBtn) {
+                fullscreenBtn.addEventListener('click', () => {
+                    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => console.warn(e));
+                    else document.exitFullscreen();
+                });
+            }
+
+            /* Tool Management */
+            function setTool(tool) {
+                currentTool = tool;
+                canvas.classList.add('pointer-events-none');
+                markerBtn.classList.remove('bg-slate-200', 'border-slate-300');
+                textBtn.classList.remove('bg-slate-200', 'border-slate-300');
+                markerIndicator.classList.add('hidden');
+                textIndicator.classList.add('hidden');
+                document.body.style.cursor = 'default';
+                
+                // Re-enable click zones for slide navigation
+                navZoneLeft.classList.remove('pointer-events-none');
+                navZoneRight.classList.remove('pointer-events-none');
+
+                if (tool !== null) {
+                    canvas.classList.remove('pointer-events-none');
+                    // Disable slide click zones while drawing
+                    navZoneLeft.classList.add('pointer-events-none');
+                    navZoneRight.classList.add('pointer-events-none');
+                    
+                    if (tool === 'marker') {
+                        markerBtn.classList.add('bg-slate-200', 'border-slate-300');
+                        markerIndicator.classList.remove('hidden');
+                        document.body.style.cursor = 'crosshair';
+                    } else if (tool === 'text') {
+                        textBtn.classList.add('bg-slate-200', 'border-slate-300');
+                        textIndicator.classList.remove('hidden');
+                        document.body.style.cursor = 'text';
+                    }
+                }
+            }
+
+            markerBtn.addEventListener('click', () => setTool(currentTool === 'marker' ? null : 'marker'));
+            textBtn.addEventListener('click', () => setTool(currentTool === 'text' ? null : 'text'));
+
+            clearBtn.addEventListener('click', () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                slideHistory[currentSlideIndex] = null;
+            });
+
+            /* Draw Functionality */
+            function startDrawing(e) {
+                if (currentTool !== 'marker') return;
+                isDrawing = true;
+                ctx.strokeStyle = '#ef4444'; // Red marker color for contrast
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                draw(e);
+            }
+
+            function stopDrawing() {
+                if (!isDrawing) return;
+                isDrawing = false;
+                ctx.beginPath();
+                saveCanvas();
+            }
+
+            function draw(e) {
+                if (!isDrawing || currentTool !== 'marker') return;
+                let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                
+                const rect = canvas.getBoundingClientRect();
+                clientX -= rect.left;
+                clientY -= rect.top;
+
+                ctx.lineTo(clientX, clientY);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(clientX, clientY);
+            }
+
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Touch support for mobile drawing
+            canvas.addEventListener('touchstart', (e) => { if(currentTool === 'marker') { e.preventDefault(); startDrawing(e); } }, {passive: false});
+            canvas.addEventListener('touchmove', (e) => { if(currentTool === 'marker') { e.preventDefault(); draw(e); } }, {passive: false});
+            canvas.addEventListener('touchend', stopDrawing);
+
+            /* Text Tool Functionality */
+            canvas.addEventListener('click', (e) => {
+                if (currentTool !== 'text') return;
+                if (document.getElementById('temp-text-input')) return; 
+
+                let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = 'temp-text-input';
+                input.placeholder = "Type note...";
+                
+                // Style the input box
+                input.style.position = 'absolute';
+                input.style.left = `${clientX}px`;
+                input.style.top = `${clientY}px`;
+                input.style.transform = 'translateY(-50%)';
+                input.style.color = '#ef4444'; // Red text
+                input.style.fontSize = '20px';
+                input.style.fontFamily = 'Inter, sans-serif';
+                input.style.fontWeight = 'bold';
+                input.style.background = 'rgba(255, 255, 255, 0.9)';
+                input.style.border = '2px dashed #ef4444';
+                input.style.padding = '4px 8px';
+                input.style.borderRadius = '4px';
+                input.style.outline = 'none';
+                input.style.zIndex = '1000';
+                input.style.minWidth = '200px';
+                input.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+
+                document.body.appendChild(input);
+                input.focus();
+
+                function stampText() {
+                    const text = input.value.trim();
+                    if (text !== '') {
+                        ctx.font = 'bold 20px "Inter", sans-serif';
+                        ctx.fillStyle = '#ef4444'; 
+                        ctx.textBaseline = 'middle';
+                        
+                        const rect = canvas.getBoundingClientRect();
+                        const drawX = clientX - rect.left;
+                        const drawY = clientY - rect.top;
+
+                        ctx.fillText(text, drawX + 8, drawY);
+                        saveCanvas(); 
+                    }
+                    if(document.body.contains(input)) input.remove();
+                }
+
+                input.addEventListener('blur', stampText);
+                input.addEventListener('keydown', (evt) => {
+                    if (evt.key === 'Enter') stampText();
+                    if (evt.key === 'Escape') input.remove();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
